@@ -1,0 +1,4 @@
+name: loops
+recipe: symfony
+config:
+  webroot: /public
