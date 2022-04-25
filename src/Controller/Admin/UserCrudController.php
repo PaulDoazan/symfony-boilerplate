@@ -5,6 +5,8 @@ namespace App\Controller\Admin;
 use App\Entity\User;
 use App\Service\UserRoleService;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -53,6 +55,30 @@ class UserCrudController extends AbstractCrudController
         array_push($fields, TextField::new('plainPassword')->onlyOnForms());
 
         return $fields;
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        // TODO Use voters to check user permissions instead of upate the display
+        if($this->isGranted('ROLE_SUPER_ADMIN')){
+            return $actions;
+        }
+
+        $checker = function (User $entity) {
+            if ($entity === $this->getUser()) {
+                return true;
+            }
+            return !$entity->isTeam();
+        };
+
+        $actions->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) use ($checker){
+            return $action->displayIf($checker);
+        });
+        $actions->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) use ($checker){
+            return $action->displayIf($checker);
+        });
+
+        return $actions;
     }
 
     /**

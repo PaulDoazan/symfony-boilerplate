@@ -137,8 +137,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function isTeam(): bool {
-        //return $this->isAdmin() || $this->isSuperAdmin();
-        return $this->isSuperAdmin();
+        return $this->isAdmin() || $this->isSuperAdmin();
     }
 
     /**
