@@ -1,0 +1,7 @@
+{% set iconMap = {
+	'super-admin': 'user-secret',
+	'admin': 'user-shield',
+	'user': 'smile',
+} %}
+
+<span><i class="fa fa-{{ iconMap[entity.instance.singleRoleKey] }}"></i> {{ entity.instance.getSingleRoleKey(true) }}</span>

@@ -18,6 +18,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     use TimestampableEntity;
     use BlameableEntity;
 
+    public const ROLE_MAP = [
+        'super-admin' => 'ROLE_SUPER_ADMIN',
+        'admin'       => 'ROLE_ADMIN',
+        'user' => 'ROLE_USER',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -31,6 +37,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string')]
     private $password;
+
+    private ?string $plainPassword = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $firstName;
@@ -95,6 +103,44 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getSingleRole(): ?string {
+        $roles = $this->getRoles();
+        foreach (self::ROLE_MAP as $label => $role) {
+            if (in_array($role, $roles)) {
+                return $role;
+            }
+        }
+        return null;
+    }
+
+    public function getSingleRoleKey(?bool $translated = false) {
+        $flipped = array_flip( self::ROLE_MAP);
+        return array_key_exists($this->getSingleRole(), $flipped) ? $flipped[$this->getSingleRole()] : null;
+    }
+
+    public function setSingleRole(string $role): User {
+        $flipped = array_flip(self::ROLE_MAP);
+        if (array_key_exists($role, $flipped)) {
+            $this->setRoles([$role]);
+        } else {
+            $this->setRoles([]);
+        }
+        return $this;
+    }
+
+    public function isSuperAdmin(): bool {
+        return $this->getSingleRole() === 'ROLE_SUPER_ADMIN';
+    }
+
+    public function isAdmin(): bool {
+        return $this->getSingleRole() === 'ROLE_ADMIN';
+    }
+
+    public function isTeam(): bool {
+        //return $this->isAdmin() || $this->isSuperAdmin();
+        return $this->isSuperAdmin();
+    }
+
     /**
      * @see PasswordAuthenticatedUserInterface
      */
@@ -107,6 +153,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->password = $password;
 
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(string $plainPassword): self {
+        $this->plainPassword = $plainPassword;
         return $this;
     }
 
